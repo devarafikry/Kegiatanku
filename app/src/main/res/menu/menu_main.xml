@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_my_schedule"
+            android:title="Jadwal Saya" />
+        <item
+            android:id="@+id/nav_add_schedule"
+            android:title="Kelola Kegiatan" />
+    </group>
+
+    <item android:title="Akun">
+        <menu>
+            <item
+                android:id="@+id/nav_log_out"
+                android:title="Keluar" />
+        </menu>
+    </item>
+
+</menu>

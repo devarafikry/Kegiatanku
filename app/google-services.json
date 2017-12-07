@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "261768321027",
+    "firebase_url": "https://puforma.firebaseio.com",
+    "project_id": "puforma",
+    "storage_bucket": "puforma.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261768321027:android:b3f9d80773a4ef16",
+        "android_client_info": {
+          "package_name": "ttc.project.absenonline"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "261768321027-s5e9qoe8jgpo7if0n6raq24hsdj9s1fv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa2NiAEU6t4OhS-Lq3w0jV43AbK-BKlWo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
