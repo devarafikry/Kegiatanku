@@ -4,6 +4,7 @@ package ttc.project.absenonline.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -25,6 +26,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import ttc.project.absenonline.adapter.ActivityFirebaseRecyclerAdapter;
+import ttc.project.absenonline.adapter.ScheduleFirebaseRecyclerAdapter;
 import ttc.project.absenonline.utils.DateUtils;
 import ttc.project.absenonline.utils.FirebaseUtils;
 import ttc.project.absenonline.R;
@@ -45,6 +48,8 @@ public class MyScheduleFragment extends Fragment {
     @BindView(R.id.fab_search)
     FloatingActionButton fab_search;
     private GoogleApiClient mClient;
+    private Snackbar s;
+    @BindView(R.id.rootView) View rootView;
 
     FirebaseRecyclerAdapter<Schedule, ScheduleViewHolder> fireAdapter;
 
@@ -73,60 +78,16 @@ public class MyScheduleFragment extends Fragment {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         Query query = FirebaseUtils.getDatabaseReference().child(getString(R.string.node_user_schedule))
                 .child(FirebaseUtils.getCurrentUser().getUid());
-        fireAdapter = new FirebaseRecyclerAdapter<Schedule, ScheduleViewHolder>(
+        fireAdapter = new ScheduleFirebaseRecyclerAdapter(
+                getContext(),
+                mClient,
+                s,
+                rootView,
                 Schedule.class,
                 R.layout.activity_item,
                 ScheduleViewHolder.class,
                 query
-        ) {
-            @Override
-            protected void populateViewHolder(final ScheduleViewHolder viewHolder, Schedule model, int position) {
-                String activityId = model.getActivityId();
-                FirebaseUtils.getDatabaseReference().child(getString(R.string.node_activity))
-                        .child(activityId)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                ActivitySchedule activity = dataSnapshot.getValue(ActivitySchedule.class);
-                                if(activity != null){
-                                    viewHolder.tv_name.setText(activity.getName());
-                                    viewHolder.tv_date.setText(DateUtils.getFriendlyDate(
-                                            getContext(), activity.getDate()
-                                    ));
-                                    viewHolder.tv_time.setText(DateUtils.getFriendlyTimeStartAndEnd(
-                                            activity.getTime_start(),
-                                            activity.getTime_end()
-                                    ));
-                                    Places.GeoDataApi.getPlaceById(mClient, activity.getPlace_id())
-                                            .setResultCallback(new ResultCallback<PlaceBuffer>() {
-                                                @Override
-                                                public void onResult(PlaceBuffer places) {
-                                                    if (places.getStatus().isSuccess() && places.getCount() > 0) {
-                                                        final Place myPlace = places.get(0);
-                                                        viewHolder.tv_place.setText(myPlace.getAddress());
-                                                        Log.i("ManageActivityFragment", "Place found: " + myPlace.getName());
-                                                    } else {
-                                                        Log.e("ManageActivityFragment", "Place not found");
-                                                    }
-                                                    places.release();
-                                                }
-                                            });
-                                } else{
-                                    FirebaseUtils.getDatabaseReference()
-                                            .child(getString(R.string.node_user_schedule))
-                                            .child(FirebaseUtils.getCurrentUser().getUid())
-                                            .child(dataSnapshot.getKey())
-                                            .removeValue();
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-            }
-        };
+        );
         rv_schedules.setLayoutManager(linearLayoutManager);
         rv_schedules.setAdapter(fireAdapter);
         return view;

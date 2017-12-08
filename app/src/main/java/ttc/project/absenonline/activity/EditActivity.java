@@ -225,37 +225,7 @@ public class EditActivity extends AppCompatActivity
             activity_name_value = text_name;
             activity_participant_count_value = Integer.valueOf(text_count);
             if(activity_start_time_value < activity_end_time_value){
-                final String uniqueId = activityId;
-                final ActivitySchedule activitySchedule = new ActivitySchedule(
-                        activity_name_value,
-                        selectedPlace.getId(),
-                        uniqueId,
-                        activity_participant_count_value,
-                        activity_date_value,
-                        activity_start_time_value,
-                        activity_end_time_value
-                );
-                FirebaseUtils.getDatabaseReference()
-                        .child(getString(R.string.node_user_activity))
-                        .child(FirebaseUtils.getCurrentUser().getUid())
-                        .child(uniqueId)
-                        .setValue(activitySchedule)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-//                                AddActivity.this.finish();
-                                FirebaseUtils.getDatabaseReference()
-                                        .child(getString(R.string.node_activity))
-                                        .child(uniqueId)
-                                        .setValue(activitySchedule)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                EditActivity.this.finish();
-                                            }
-                                        });
-                            }
-                        });
+                saveToFirebaseDatabase();
             } else{
                 SnackbarUtils.showSnackbar(
                         rootView,
@@ -273,17 +243,40 @@ public class EditActivity extends AppCompatActivity
         }
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
-            Place place = PlacePicker.getPlace(this, data);
-            if (place == null) {
-                Log.i(TAG, "No place selected");
-                return;
-            }
-            activity_place.setText(place.getAddress().toString());
-            this.selectedPlace = place;
-        }
+    private void saveToFirebaseDatabase() {
+        final String uniqueId = activityId;
+        final ActivitySchedule activitySchedule = new ActivitySchedule(
+                activity_name_value,
+                selectedPlace.getId(),
+                uniqueId,
+                activity_participant_count_value,
+                activity_date_value,
+                activity_start_time_value,
+                activity_end_time_value
+        );
+        FirebaseUtils.getDatabaseReference()
+                .child(getString(R.string.node_user_activity))
+                .child(FirebaseUtils.getCurrentUser().getUid())
+                .child(uniqueId)
+                .setValue(activitySchedule)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+//                                AddActivity.this.finish();
+                        FirebaseUtils.getDatabaseReference()
+                                .child(getString(R.string.node_activity))
+                                .child(uniqueId)
+                                .setValue(activitySchedule)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        EditActivity.this.finish();
+                                    }
+                                });
+                    }
+                });
     }
+
     public void addPlace() {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -302,6 +295,18 @@ public class EditActivity extends AppCompatActivity
             Log.e(TAG, String.format("GooglePlayServices Not Available [%s]", e.getMessage()));
         } catch (Exception e) {
             Log.e(TAG, String.format("PlacePicker Exception: %s", e.getMessage()));
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
+            Place place = PlacePicker.getPlace(this, data);
+            if (place == null) {
+                Log.i(TAG, "No place selected");
+                return;
+            }
+            activity_place.setText(place.getAddress().toString());
+            this.selectedPlace = place;
         }
     }
 

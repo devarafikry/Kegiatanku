@@ -31,6 +31,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import ttc.project.absenonline.activity.DetailParticipantActivity;
 import ttc.project.absenonline.activity.EditActivity;
+import ttc.project.absenonline.adapter.ActivityFirebaseRecyclerAdapter;
 import ttc.project.absenonline.utils.DateUtils;
 import ttc.project.absenonline.utils.FirebaseUtils;
 import ttc.project.absenonline.R;
@@ -79,124 +80,17 @@ public class ManageActivityFragment extends Fragment {
 
         Query query = FirebaseUtils.getDatabaseReference().child(getString(R.string.node_user_activity))
                 .child(FirebaseUtils.getCurrentUser().getUid());
-        fireAdapter = new FirebaseRecyclerAdapter<ActivitySchedule, ActivityViewHolder>(
+        fireAdapter = new ActivityFirebaseRecyclerAdapter(
+                getContext(),
+                mClient,
+                s,
+                rootView,
                 ActivitySchedule.class,
                 R.layout.activity_item,
                 ActivityViewHolder.class,
                 query
-                ) {
-            @Override
-            protected void populateViewHolder(final ActivityViewHolder viewHolder, final ActivitySchedule activity, int position) {
-                viewHolder.tv_name.setText(activity.getName());
-                viewHolder.btn_copy.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                        ClipData clip = ClipData.newPlainText("KegiatanId", activity.getKey());
-                        clipboard.setPrimaryClip(clip);
+        );
 
-                        SnackbarUtils.showSnackbar(
-                                rootView,
-                                s,
-                                "Id kegiatan telah di copy, silahkan berikan id kepada calon peserta",
-                                Snackbar.LENGTH_LONG
-                        );
-                    }
-                });
-                viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(getContext(), DetailParticipantActivity.class);
-                        intent.putExtra(DetailParticipantActivity.EXTRA_ACTIVITY_KEY, activity.getKey());
-                        intent.putExtra(DetailParticipantActivity.EXTRA_TITLE_KEY, activity.getName());
-                        startActivity(intent);
-                    }
-                });
-                viewHolder.tv_date.setText(DateUtils.getFriendlyDate(
-                        getContext(), activity.getDate()
-                ));
-                viewHolder.tv_time.setText(DateUtils.getFriendlyTimeStartAndEnd(
-                        activity.getTime_start(),
-                        activity.getTime_end()
-                ));
-                viewHolder.btn_edit.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(getContext(), EditActivity.class);
-                        intent.putExtra(EditActivity.EXTRA_ACTIVITY_ID, activity.getKey());
-                        startActivity(intent);
-                    }
-                });
-                viewHolder.btn_delete.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                        builder.setTitle("Hapus kegiatan "+activity.getName()+" ?");
-                        builder.setMessage("Semua data termasuk peserta kegiatan akan dihapus");
-                        builder.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                // User clicked OK button
-                                FirebaseUtils.getDatabaseReference()
-                                        .child(getString(R.string.node_user_activity))
-                                        .child(FirebaseUtils.getCurrentUser().getUid())
-                                        .child(activity.getKey())
-                                        .removeValue()
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                FirebaseUtils.getDatabaseReference()
-                                                        .child(getString(R.string.node_activity))
-                                                        .child(activity.getKey())
-                                                        .removeValue()
-                                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                            @Override
-                                                            public void onSuccess(Void aVoid) {
-                                                                FirebaseUtils.getDatabaseReference()
-                                                                        .child(getString(R.string.node_schedule))
-                                                                        .child(activity.getKey())
-                                                                        .removeValue()
-                                                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                            @Override
-                                                                            public void onSuccess(Void aVoid) {
-                                                                                SnackbarUtils.showSnackbar(
-                                                                                        rootView,
-                                                                                        s,
-                                                                                        "Kegiatan berhasil dihapus",
-                                                                                        Snackbar.LENGTH_LONG
-                                                                                );
-                                                                            }
-                                                                        });
-                                                            }
-                                                        });
-                                            }
-                                        });
-                            }
-                        });
-                        builder.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                // User cancelled the dialog
-                            }
-                        });
-                        AlertDialog dialog = builder.create();
-                        dialog.show();
-                    }
-                });
-                Places.GeoDataApi.getPlaceById(mClient, activity.getPlace_id())
-                        .setResultCallback(new ResultCallback<PlaceBuffer>() {
-                            @Override
-                            public void onResult(PlaceBuffer places) {
-                                if (places.getStatus().isSuccess() && places.getCount() > 0) {
-                                    final Place myPlace = places.get(0);
-                                    viewHolder.tv_place.setText(myPlace.getAddress());
-                                    Log.i("ManageActivityFragment", "Place found: " + myPlace.getName());
-                                } else {
-                                    Log.e("ManageActivityFragment", "Place not found");
-                                }
-                                places.release();
-                            }
-                        });
-            }
-        };
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         rv_activities.setAdapter(fireAdapter);
         rv_activities.setLayoutManager(linearLayoutManager);

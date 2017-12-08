@@ -13,6 +13,7 @@ import com.google.firebase.database.Query;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import ttc.project.absenonline.R;
+import ttc.project.absenonline.adapter.ParticipantFirebaseRecyclerAdapter;
 import ttc.project.absenonline.model.Participant;
 import ttc.project.absenonline.utils.DateUtils;
 import ttc.project.absenonline.utils.FirebaseUtils;
@@ -43,19 +44,12 @@ public class DetailParticipantActivity extends AppCompatActivity {
             Query query = FirebaseUtils.getDatabaseReference()
                     .child(getString(R.string.node_attendance))
                     .child(activityKey);
-            fireAdapter = new FirebaseRecyclerAdapter<Participant, ParticipantViewHolder>(
+            fireAdapter = new ParticipantFirebaseRecyclerAdapter(
                     Participant.class,
                     R.layout.participant_item,
                     ParticipantViewHolder.class,
                     query
-            ) {
-                @Override
-                protected void populateViewHolder(ParticipantViewHolder viewHolder, Participant participant, int position) {
-                    viewHolder.participant_name.setText(participant.getName());
-                    viewHolder.participant_email.setText(participant.getEmail());
-                    viewHolder.participant_in.setText(DateUtils.getFriendlyTime(participant.getDate_in()));
-                }
-            };
+            );
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
             rv_participants.setLayoutManager(linearLayoutManager);
             rv_participants.setAdapter(fireAdapter);
